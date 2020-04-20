@@ -1,0 +1,230 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity password is
+ Port (
+ CLK : in STD_LOGIC;
+ enter,reset : in  STD_LOGIC;
+           a : in  STD_LOGIC_VECTOR (3 downto 0);          
+ unlocked: out  STD_LOGIC :='0';
+ store :out  STD_LOGIC :='0';
+ t4 : inout STD_LOGIC_VECTOR(3 downto 0);
+ q2 : inout STD_LOGIC_VECTOR(3 downto 0));
+end password;
+
+architecture Behavioral of password is
+
+TYPE state_type IS (locked,z1,z2,z3,z4,z6,z7,z8,z9,z10,unlck);
+ SIGNAL state : state_type := locked;
+signal flag: STD_LOGIC := '1';
+signal p: STD_LOGIC := '0';
+signal f: STD_LOGIC := '1';
+signal p1: STD_LOGIC_VECTOR (3 downto 0):="0001";
+signal p2: STD_LOGIC_VECTOR (3 downto 0):="0010";
+signal p3: STD_LOGIC_VECTOR (3 downto 0):="0011";
+signal p4: STD_LOGIC_VECTOR (3 downto 0):="0100";
+signal t2: STD_LOGIC_VECTOR (3 downto 0);
+   --signal t2: STD_LOGIC_VECTOR (3 downto 0);
+signal t3: STD_LOGIC_VECTOR (3 downto 0);
+signal t1: STD_LOGIC_VECTOR (3 downto 0);
+signal q4: STD_LOGIC_VECTOR (3 downto 0);
+   --signal q2: STD_LOGIC_VECTOR (3 downto 0);
+signal q3: STD_LOGIC_VECTOR (3 downto 0);
+signal q1: STD_LOGIC_VECTOR (3 downto 0);
+
+begin
+
+process(reset,CLK)
+begin
+
+ If (reset = '1') THEN
+state <= locked;
+unlocked<='0';
+store <='0';
+flag <= '1';
+f <= '1';
+p <= '0';
+
+ELSIF rising_edge(CLK) THEN
+    case state is
+   when locked =>
+       unlocked <='0';
+       flag <= '1';
+ store <='0';
+ f<='1';
+ if(a/=p1) then
+    flag <= '0';
+    state <=z1;
+ else
+    state <= z1;
+ end if;
+       
+when z1 =>
+       flag <= '1';
+ if(a/=p2) then
+    flag <= '0';
+    state <=z2;
+ else
+    state <= z2;
+ end if;
+ when z2 =>
+       flag <= '1';
+ if(a/=p3) then
+    flag <= '0';
+    state <=z3;
+ else
+    state <= z3;
+ end if;
+ 
+        when z3 =>
+       flag <= '1';  
+ if(a/=p4) then
+    flag <= '0';
+    state <=z4;
+ else
+    state <= z4;
+ end if;
+
+        when z4 =>
+       flag <= '1';
+ if(a="1011") then                      ----            * : 1010              ,         # : 1011
+    if flag <= '0' then
+     state <= locked;
+    else
+     unlocked <= '1';
+        state <= unlck;
+ end if;
+ elsif(a="1010") then
+if flag <='0' then
+    state <= locked;
+else
+    --store <= '1';
+ if(enter = '0') then
+ state <= z6;
+ end if;
+end if;
+ end if;
+when unlck =>
+     if (a/="1011") then
+  unlocked <='0';
+  state <= locked;
+else
+  state <= unlck;
+end if;
+ 
+when z6 =>
+     store <='1';
+     f <= '1';
+     if(p = '0' and a /= "1010" and a /= "1011") then
+q1 <= a;
+if(enter = '0') then
+state <= z7;
+end if;
+end if;
+if(p = '1' and a /= "1010" and a /= "1011") then
+t1 <= a;
+if(q1/=t1) then
+f <='0';
+if(enter = '0') then
+state <= z7;
+end if;
+else
+if(enter = '0') then
+state <= z7;
+end if;
+end if;  
+end if;
+
+when z7 =>
+     if(p = '0' and enter = '1') then
+q2 <= a;
+if enter = '0' then
+state <= z8;
+end if;
+end if;
+if(p = '1' and enter = '0') then
+  t2 <=a;
+if(q2/=t2) then
+f <='0';
+state <= z8;
+else
+if(enter = '0') then
+state <= z8;
+end if;
+end if;
+end if;
+
+     when z8 =>
+     if(p = '0' and enter = '1') then
+q3 <= a;
+if enter = '0' then
+state <= z9;
+end if;
+end if;
+
+if(p = '1') then
+  t3 <=a;
+if(q3/=t3) then
+f <= '0';
+if(enter = '0') then
+state <= z9;
+end if;
+else
+if(enter = '0') then
+state <= z9;
+end if;
+end if;
+end if;
+ 
+when z9 =>
+     if(p = '0' and enter = '1') then
+q4 <= a;
+if enter = '0' then
+state <= z10;
+end if;
+end if;
+
+if(p = '1') then
+  t4 <=a;
+if(q4/=t4) then
+f <='0';
+if(enter = '0') then
+state <= z10;
+end if;
+else
+if(enter = '0') then
+state <= z10;
+end if;
+end if;
+end if;
+
+when z10 =>
+     if(p = '0' and enter = '1') then
+if(a="1011") then
+p <= '1';
+if enter = '0' then
+state <= z6;
+end if;
+end if;
+else
+  if(a="1011") then
+  if(f = '0') then
+p <= '0';
+if(enter = '0') then
+state <= z6;
+end if;
+else
+  p1 <= q1;
+p2 <=  q2;
+p3 <=  q3;
+p4 <=   q4;
+p <= '0';
+store <= '0';
+        state <= locked;
+end if;
+end if;
+               end if;
+end case;
+end if;
+end process;
+end Behavioral;
